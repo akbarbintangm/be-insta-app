@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Http\Controllers\Social\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Http\Resources\ResponseResource;
+use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Exception;
+
+/**
+ * @OA\Tag(
+ *     name="Users",
+ *     description="User list, detail, and authenticated user"
+ * )
+ */
+class UserController extends Controller
+{
+    public const ERROR_MESSAGE = "Terjadi kesalahan pada server";
+
+    /**
+     * @OA\Get(
+     *     path="/api/users",
+     *     tags={"Users"},
+     *     summary="Get list of users",
+     *     security={{"bearerAuth": {}}},
+     * 
+     *     @OA\Response(response=200, description="List of users"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+    public function index()
+    {
+        try {
+            $users = User::all();
+            return ResponseResource::json(200, 'success', 'List user', $users);
+        } catch (Exception $e) {
+            return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/users/me",
+     *     tags={"Users"},
+     *     summary="Get authenticated user info",
+     *     security={{"bearerAuth": {}}},
+     * 
+     *     @OA\Response(response=200, description="Authenticated user data"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+    public function me()
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            return ResponseResource::json(200, 'success', 'User authenticated', $user);
+        } catch (Exception $e) {
+            return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/users/{id}",
+     *     tags={"Users"},
+     *     summary="Get detail of a user",
+     *     security={{"bearerAuth": {}}},
+     * 
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="UUID of the user",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     * 
+     *     @OA\Response(response=200, description="Detail user"),
+     *     @OA\Response(response=404, description="User not found"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+    public function show($id)
+    {
+        try {
+            $user = User::find($id);
+
+            if (!$user) {
+                return ResponseResource::json(404, 'error', 'User tidak ditemukan');
+            }
+
+            return ResponseResource::json(200, 'success', 'Detail user', $user);
+
+        } catch (Exception $e) {
+            return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, $e->getMessage());
+        }
+    }
+}

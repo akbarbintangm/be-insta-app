@@ -220,21 +220,782 @@
                     }
                 }
             }
+        },
+        "/api/comments/{postId}": {
+            "get": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "List semua comments pada suatu post",
+                "description": "Mengambil semua comments beserta replies untuk post tertentu.",
+                "operationId": "5d6254709a3cb617df8ab14e8d58366e",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "UUID post",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar comments"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Membuat comment baru pada post",
+                "description": "Menambah comment baru atau reply (jika parent_id diisi) untuk post tertentu.",
+                "operationId": "9b4dc92dd9b73b156bff880ffc5ebd8b",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "UUID post",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "comment"
+                                ],
+                                "properties": {
+                                    "comment": {
+                                        "type": "string",
+                                        "example": "Keren banget!"
+                                    },
+                                    "parent_id": {
+                                        "type": "string",
+                                        "example": null,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Comment berhasil dibuat"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/comments/{postId}/{commentId}": {
+            "delete": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Menghapus comment pada post",
+                "description": "Menghapus comment utama atau reply berdasarkan UUID.",
+                "operationId": "b6fb91f343a6a6b1df59ba879977022a",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "UUID post",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "commentId",
+                        "in": "path",
+                        "description": "UUID comment",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment berhasil dihapus"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/likes/{postId}": {
+            "post": {
+                "tags": [
+                    "Likes"
+                ],
+                "summary": "Like post",
+                "description": "Memberikan like pada sebuah post. Jika sudah pernah like, tidak membuat duplikasi.",
+                "operationId": "bebbf6e655fab8c10da05cf439c6ddf1",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "UUID dari post yang ingin di-like",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil melakukan like"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Likes"
+                ],
+                "summary": "Unlike post",
+                "description": "Menghapus like dari sebuah post jika sebelumnya sudah like.",
+                "operationId": "773cd7a46543334740b4dcf57bd5b10a",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "UUID dari post yang ingin di-unlike",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil melakukan unlike"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/posts": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "List semua post",
+                "description": "Mengambil semua postingan beserta media.",
+                "operationId": "c6f2cc414b2da5257e4160d7323e44bc",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil list post"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Buat post baru",
+                "description": "Membuat postingan baru oleh user yang login.",
+                "operationId": "44c0e176ff8f49c4114ba82a73f017c6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "caption": {
+                                        "type": "string",
+                                        "example": "Liburan hari ini!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berhasil membuat post"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/posts/{id}": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Detail post",
+                "description": "Mengambil detail post beserta media.",
+                "operationId": "f2f6c491b576bd042008143267aacb6a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID post",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil ambil detail post"
+                    },
+                    "404": {
+                        "description": "Post tidak ditemukan"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Update post",
+                "description": "Hanya pemilik post yang dapat mengupdate postingannya.",
+                "operationId": "23d2ff3b9890023a8c9338f7820445fd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID post",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "caption": {
+                                        "type": "string",
+                                        "example": "Update caption baru"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berhasil update post"
+                    },
+                    "403": {
+                        "description": "Tidak boleh update post orang lain"
+                    },
+                    "404": {
+                        "description": "Post tidak ditemukan"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Hapus post",
+                "description": "Hanya pemilik post yang boleh menghapus post.",
+                "operationId": "7d5af96085e32c0bd29c22143322831d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID post",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post berhasil dihapus"
+                    },
+                    "403": {
+                        "description": "Tidak boleh hapus post orang lain"
+                    },
+                    "404": {
+                        "description": "Post tidak ditemukan"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/post-media/{postId}": {
+            "post": {
+                "tags": [
+                    "Post Media"
+                ],
+                "summary": "Upload media to a post",
+                "operationId": "b32910c68f9f7a3dd3a24ae592f00ab6",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "UUID of the post",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "description": "Media file (image/video)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "type": {
+                                        "description": "Media type (image/video)",
+                                        "type": "string",
+                                        "example": "image"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Media uploaded"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/follow/{id}": {
+            "post": {
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Follow a user",
+                "description": "Follow User.",
+                "operationId": "456efed9e5384734c6c9e8bb338d8672",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID of user to follow",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Followed"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Unfollow a user",
+                "description": "Unfollow User.",
+                "operationId": "501c1186465a45abc03f59cb540dd31a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID of user to unfollow",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Unfollowed"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get list of users",
+                "operationId": "29655023c0605f4d72de82f9147e3c5b",
+                "responses": {
+                    "200": {
+                        "description": "List of users"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get authenticated user info",
+                "operationId": "ea32fa4cf836c7fa82b9db1778c97c5e",
+                "responses": {
+                    "200": {
+                        "description": "Authenticated user data"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{id}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get detail of a user",
+                "operationId": "e19f5cd7ea87abe5ba0951304de94f7b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID of the user",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail user"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "put": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Update user profile",
+                "operationId": "05832ea3ee2a2beb2343fb2bac2eee80",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "bio": {
+                                        "type": "string",
+                                        "example": "This is my bio."
+                                    },
+                                    "website": {
+                                        "type": "string",
+                                        "example": "https://example.com"
+                                    },
+                                    "avatar": {
+                                        "type": "string",
+                                        "example": "/uploads/avatar.jpg"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile/{id}": {
+            "get": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Get user profile detail",
+                "operationId": "e59fdcd1e7afca9a2ef91afbba373afe",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID of user",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User profile fetched"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
-                "bearerFormat": "JWT",
-                "scheme": "bearer"
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
             }
         }
     },
     "tags": [
         {
             "name": "Auth",
-            "description": "Auth"
+            "description": "API Auth"
+        },
+        {
+            "name": "Comments",
+            "description": "API untuk mengelola comments dan replies pada post"
+        },
+        {
+            "name": "Likes",
+            "description": "API untuk menyukai dan batal menyukai post"
+        },
+        {
+            "name": "Posts",
+            "description": "API untuk mengelola postingan (CRUD)"
+        },
+        {
+            "name": "Post Media",
+            "description": "Upload media for posts"
+        },
+        {
+            "name": "Follow",
+            "description": "Follow and Unfollow user"
+        },
+        {
+            "name": "Users",
+            "description": "User list, detail, and authenticated user"
+        },
+        {
+            "name": "User Profile",
+            "description": "User profile information and updates"
         }
     ]
 }

@@ -16,7 +16,6 @@ namespace App\Http\Controllers;
  *     bearerFormat="JWT"
  * )
 */
-
 abstract class Controller
 {
     
