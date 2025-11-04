@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Cookie;
 use Exception;
 
-class LoginController extends Controller
+class AuthController extends Controller
 {
     public const ERROR_MESSAGE = "Terjadi kesalahan pada server";
 
