@@ -10,8 +10,15 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\ResponseResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Cookie;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
 
+/**
+ * @OA\Tag(
+ *     name="Auth",
+ *     description="API Auth"
+ * )
+ */
 class AuthController extends Controller
 {
     public const ERROR_MESSAGE = "Terjadi kesalahan pada server";
@@ -53,7 +60,7 @@ class AuthController extends Controller
 
             $checkUser = User::where('email', $validatedData['email'])->first();
             if ($checkUser) {
-                $response = ResponseResource::json(400, 'error', 'Email sudah terdaftar', ['email' => $validatedData['email']]);
+                $response = $this->errorEmailFoundOrNotFound($request, true);
             } else {
                 $user = User::create([
                     'name' => $validatedData['name'],
@@ -102,38 +109,127 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
+            $response = null;
             $request->validate([
                 'email' => 'required|string|email',
                 'password' => 'required|string',
+                'remember' => 'boolean',
             ]);
 
             $user = User::where('email', $request->email)->first();
             if (!$user) {
-                return ResponseResource::json(404, 'error', 'Email tidak ditemukan', ['email' => $request->email]);
+                $response = $this->errorEmailFoundOrNotFound($request, false);
             }
 
             if (!Hash::check($request->password, $user->password)) {
-                return ResponseResource::json(401, 'error', 'Password salah', ['email' => $request->email]);
+                $response = $this->errorWrongPassword($request);
+            } else {
+                $response = $this->handleSuccessfulLogin($request, $user);
             }
+            
+            return $response;
+        } catch (ValidationException $errorValidation) {
+            return ResponseResource::json(422, 'error', 'Validasi gagal', $errorValidation->errors());
 
-            $token = bin2hex(random_bytes(32));
+        } catch (Exception $errorException) {
+            return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, [
+                'error' => $errorException->getMessage()
+            ]);
+        }
+    }
+
+    private function errorEmailFoundOrNotFound(Request $request, bool $found)
+    {
+        $message = $found ? 'Email sudah terdaftar' : 'Email tidak ditemukan';
+        $code = $found ? 400 : 404;
+
+        return ResponseResource::json(
+            $code,
+            'error',
+            $message,
+            ['email' => $request->email]
+        );
+    }
+
+    private function errorWrongPassword(Request $request)
+    {
+        return ResponseResource::json(
+            401,
+            'error',
+            'Password salah',
+            ['email' => $request->email]
+        );
+    }
+
+    private function handleSuccessfulLogin(Request $request, User $user)
+    {
+        $this->setTokenTTL($request);
+
+        $credentials = $request->only('email', 'password');
+        $token = JWTAuth::attempt($credentials);
+
+        if (!$token) {
+            return ResponseResource::json(401, 'error', 'Email atau password salah', []);
+        }
+
+        $refreshToken = $this->handleRememberToken($request, $user);
+
+        $this->queueCookies($token, $refreshToken, $request);
+
+        $userSanitized = $user->only(['id', 'name', 'email', 'created_at']);
+
+        return ResponseResource::json(200, 'success', 'Login berhasil', [
+            'user' => $userSanitized,
+            'token' => $token,
+            'remember' => (bool) $request->remember
+        ]);
+    }
+
+    private function setTokenTTL(Request $request)
+    {
+        if ($request->remember) {
+            JWTAuth::factory()->setTTL(60 * 24 * 7);
+        } else {
+            JWTAuth::factory()->setTTL(60);
+        }
+    }
+
+    private function handleRememberToken(Request $request, User $user)
+    {
+        if ($request->remember) {
             $refreshToken = bin2hex(random_bytes(32));
             $user->remember_token = $refreshToken;
-            $user->save();
+        } else {
+            $refreshToken = null;
+            $user->remember_token = null;
+        }
 
-            Cookie::queue(cookie('token', $token, 60 * 24, null, null, true, true, false, 'Strict'));
-            Cookie::queue(cookie('refresh_token', $refreshToken, 60 * 24 * 7, null, null, true, true, false, 'Strict'));
+        $user->save();
+        return $refreshToken;
+    }
 
-            $data = [
-                'user' => $user,
-                'token' => $token,
-            ];
+    private function queueCookies($token, $refreshToken, Request $request)
+    {
+        $ttl = JWTAuth::factory()->getTTL();
 
-            return ResponseResource::json(200, 'success', 'Login berhasil', $data);
-        } catch (ValidationException $errorValidation) {
-            return ResponseResource::json(500, 'error', 'Validasi gagal', $errorValidation->errors());
-        } catch (Exception $errorException) {
-            return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, ['error' => $errorException->getMessage()]);
+        Cookie::queue(cookie(
+            'token',
+            $token,
+            $ttl,
+            httpOnly: true,
+            secure: true,
+            sameSite: 'Strict'
+        ));
+
+        if ($request->remember) {
+            Cookie::queue(cookie(
+                'refresh_token',
+                $refreshToken,
+                60 * 24 * 7,
+                httpOnly: true,
+                secure: true,
+                sameSite: 'Strict'
+            ));
         }
     }
 
@@ -197,23 +293,26 @@ class AuthController extends Controller
     public function refresh(Request $request)
     {
         try {
+            $response = null;
             $refreshToken = $request->cookie('refresh_token');
             if (!$refreshToken) {
-                return ResponseResource::json(400, 'error', 'Refresh token tidak ditemukan', null);
+                $response = ResponseResource::json(400, 'error', 'Refresh token tidak ditemukan', null);
             }
             $user = User::where('remember_token', $refreshToken)->first();
             if (!$user) {
-                return ResponseResource::json(401, 'error', 'Refresh token tidak valid atau kedaluwarsa', null);
+                $response = ResponseResource::json(401, 'error', 'Refresh token tidak valid atau kedaluwarsa', null);
+            } else {
+                $newToken = bin2hex(random_bytes(32));
+                $newRefreshToken = bin2hex(random_bytes(32));
+                $user->remember_token = $newRefreshToken;
+                $user->save();
+
+                Cookie::queue(cookie('token', $newToken, 60 * 24, null, null, true, true, false, 'Strict'));
+                Cookie::queue(cookie('refresh_token', $newRefreshToken, 60 * 24 * 7, null, null, true, true, false, 'Strict'));
+
+                $response = ResponseResource::json(200, 'success', 'Token berhasil diperbarui', ['token' => $newToken]);
             }
-            $newToken = bin2hex(random_bytes(32));
-            $newRefreshToken = bin2hex(random_bytes(32));
-            $user->remember_token = $newRefreshToken;
-            $user->save();
-
-            Cookie::queue(cookie('token', $newToken, 60 * 24, null, null, true, true, false, 'Strict'));
-            Cookie::queue(cookie('refresh_token', $newRefreshToken, 60 * 24 * 7, null, null, true, true, false, 'Strict'));
-
-            return ResponseResource::json(200, 'success', 'Token berhasil diperbarui', ['token' => $newToken]);
+            return $response;
         } catch (Exception $errorException) {
             return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, ['error' => $errorException->getMessage()]);
         }
