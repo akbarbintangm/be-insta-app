@@ -43,20 +43,26 @@ class LoginController extends Controller
      */
     public function register(Request $request)
     {
+        $response = null;
         try {
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
+                'email' => 'required|string|email|max:255',
                 'password' => 'required|string|min:6',
             ]);
 
-            $user = User::create([
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'password' => Hash::make($validatedData['password']),
-            ]);
-
-            return ResponseResource::json(200, 'success', 'Register berhasil', $user);
+            $checkUser = User::where('email', $validatedData['email'])->first();
+            if ($checkUser) {
+                $response = ResponseResource::json(400, 'error', 'Email sudah terdaftar', ['email' => $validatedData['email']]);
+            } else {
+                $user = User::create([
+                    'name' => $validatedData['name'],
+                    'email' => $validatedData['email'],
+                    'password' => Hash::make($validatedData['password']),
+                ]);
+                $response = ResponseResource::json(200, 'success', 'Register berhasil', $user);
+            }
+            return $response;
         } catch (Exception $errorException) {
             return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, ['error' => $errorException->getMessage()]);
         }
