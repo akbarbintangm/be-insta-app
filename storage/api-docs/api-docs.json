@@ -13,7 +13,7 @@
                 ],
                 "summary": "Registrasi user baru",
                 "description": "Membuat akun baru dan langsung mengembalikan data user tanpa JWT",
-                "operationId": "84420be17bb1c6fa0e0974434f42ca04",
+                "operationId": "da8643013c2941f5ed7f8a9c9b4a7f7a",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -72,7 +72,7 @@
                 ],
                 "summary": "Login dan mendapatkan JWT token",
                 "description": "Endpoint untuk login user dan mendapatkan token JWT, disimpan dalam cookie http-only",
-                "operationId": "f779238bce5c5b984c773808f46fd14c",
+                "operationId": "535ffeda4b78916efd658b2844ea897a",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -146,7 +146,7 @@
                 ],
                 "summary": "Logout",
                 "description": "Menghapus cookie JWT dan refresh_token",
-                "operationId": "a09608b2fbed6bd1841153fae1c6b7f2",
+                "operationId": "46f8a14c8083abb69eed72768aa08629",
                 "responses": {
                     "200": {
                         "description": "Logout berhasil",
@@ -178,7 +178,7 @@
                 ],
                 "summary": "Refresh Token",
                 "description": "Memperbarui access token menggunakan refresh token dari cookie",
-                "operationId": "29a727b701c5fac57f1f288c72ffd72b",
+                "operationId": "f3538b6e9c46bcf601a9d194288b03d4",
                 "responses": {
                     "200": {
                         "description": "Token berhasil diperbarui",
