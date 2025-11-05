@@ -19,21 +19,24 @@ Route::controller(AuthController::class)->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/register', 'register');
         Route::post('/login', 'login');
-        Route::middleware('auth:api')->group(function () {
-            Route::post('/logout', 'logout');
-            Route::post('/refresh', 'refresh');
-        });
-        // Route::post('/logout', 'logout');
-        // Route::post('/refresh', 'refresh');
+        Route::post('/refresh', 'refresh');
     });
 });
 
 Route::middleware('auth:api')->group(function () {
+    Route::prefix('auth')->group(function () {
+        Route::controller(AuthController::class)->group(function () {
+            Route::post('/logout', 'logout');
+        });
+    });
+
     // USER + PROFILE
     Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
         Route::get('/me', 'me');
         Route::get('/{id}', 'show');
+        Route::put('/username/change', 'updateUsername');
+        Route::put('/username/check', 'checkUsername');
     });
 
     // PROFILE

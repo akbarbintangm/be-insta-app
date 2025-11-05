@@ -871,6 +871,104 @@
                 ]
             }
         },
+        "/api/users/username/change": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Menganti username pengguna yang terautentikasi",
+                "description": "Endpoint ini memungkinkan pengguna yang terautentikasi untuk mengubah username mereka. Pastikan username baru belum digunakan oleh pengguna lain.",
+                "operationId": "d1eb41d16fd44c5e722373c9b8912722",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "Username baru yang diinginkan",
+                                        "type": "string",
+                                        "example": "username_new"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengubah username"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/username/check": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Check username pengguna tersedia atau tidak",
+                "description": "Endpoint ini memungkinkan untuk memeriksa apakah username yang diinginkan sudah digunakan oleh pengguna lain atau belum.",
+                "operationId": "446d27701791e0c82d30d4945c48b7b3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "Username yang ingin diperiksa",
+                                        "type": "string",
+                                        "example": "username_new"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengubah username"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/profile": {
             "put": {
                 "tags": [
