@@ -126,7 +126,7 @@ class AuthController extends Controller
             } else {
                 $response = $this->handleSuccessfulLogin($request, $user);
             }
-            
+
             return $response;
         } catch (ValidationException $errorValidation) {
             return ResponseResource::json(422, 'error', 'Validasi gagal', $errorValidation->errors());
@@ -176,7 +176,7 @@ class AuthController extends Controller
 
         $this->queueCookies($token, $refreshToken, $request);
 
-        $userSanitized = $user->only(['id', 'name', 'email', 'created_at']);
+        $userSanitized = $user->only(['id', 'name', 'username', 'email', 'created_at']);
 
         return ResponseResource::json(200, 'success', 'Login berhasil', [
             'user' => $userSanitized,
@@ -292,29 +292,74 @@ class AuthController extends Controller
      */
     public function refresh(Request $request)
     {
+        $response = null;
         try {
-            $response = null;
+            // Ambil refresh token dari cookie
             $refreshToken = $request->cookie('refresh_token');
+
             if (!$refreshToken) {
                 $response = ResponseResource::json(400, 'error', 'Refresh token tidak ditemukan', null);
             }
+
+            // Cari user berdasarkan refresh token
             $user = User::where('remember_token', $refreshToken)->first();
+
             if (!$user) {
                 $response = ResponseResource::json(401, 'error', 'Refresh token tidak valid atau kedaluwarsa', null);
             } else {
-                $newToken = bin2hex(random_bytes(32));
-                $newRefreshToken = bin2hex(random_bytes(32));
-                $user->remember_token = $newRefreshToken;
+                // Buat access token JWT baru
+                $newJwt = JWTAuth::fromUser($user);
+
+                // Buat refresh token baru
+                $newRefresh = bin2hex(random_bytes(32));
+                $user->remember_token = $newRefresh;
                 $user->save();
 
-                Cookie::queue(cookie('token', $newToken, 60 * 24, null, null, true, true, false, 'Strict'));
-                Cookie::queue(cookie('refresh_token', $newRefreshToken, 60 * 24 * 7, null, null, true, true, false, 'Strict'));
+                // Set cookie access token (httpOnly)
+                Cookie::queue(cookie(
+                    'token',
+                    $newJwt,
+                    60, // 1 jam
+                    '/',
+                    null,
+                    true,       // secure
+                    true,       // httpOnly
+                    false,
+                    'Strict'
+                ));
 
-                $response = ResponseResource::json(200, 'success', 'Token berhasil diperbarui', ['token' => $newToken]);
+                // Set cookie refresh token baru
+                Cookie::queue(cookie(
+                    'refresh_token',
+                    $newRefresh,
+                    60 * 24 * 7, // 7 hari
+                    '/',
+                    null,
+                    true,
+                    true,
+                    false,
+                    'Strict'
+                ));
+
+                $userSanitized = $user->only([
+                    'id',
+                    'name',
+                    'username',
+                    'email',
+                    'created_at',
+                ]);
+
+                $response = ResponseResource::json(200, 'success', 'Token berhasil diperbarui', [
+                    'token' => $newJwt,
+                    'user'  => $userSanitized,
+                    'remember' => true
+                ]);
             }
             return $response;
-        } catch (Exception $errorException) {
-            return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, ['error' => $errorException->getMessage()]);
+        } catch (Exception $e) {
+            return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, [
+                'error' => $e->getMessage()
+            ]);
         }
     }
 }
