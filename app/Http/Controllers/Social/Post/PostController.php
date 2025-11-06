@@ -35,7 +35,12 @@ class PostController extends Controller
     public function index()
     {
         try {
-            $posts = Post::with('media')->latest()->get();
+            $posts = Post::with([
+                'media',
+                'likes',
+                'user',
+                'comments' => function ($q) { $q->with('user')->orderBy('created_at', 'desc'); }
+            ])->latest()->get();
             return ResponseResource::json(200, 'success', 'List post', $posts);
         } catch (Exception $errorException) {
             return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, [
@@ -108,13 +113,16 @@ class PostController extends Controller
     public function show($id)
     {
         try {
-            $post = Post::with('media')->find($id);
-
-            if (!$post) {
-                return ResponseResource::json(404, 'error', 'Post tidak ditemukan');
+            $posts = Post::with([
+                'media',
+                'likes',
+                'user',
+                'comments' => function ($q) { $q->with('user')->orderBy('created_at', 'desc'); }
+            ])->find($id);
+            if (!$posts) {
+                return ResponseResource::json(404, 'error', 'Post not found', null);
             }
-
-            return ResponseResource::json(200, 'success', 'Detail post', $post);
+            return ResponseResource::json(200, 'success', 'Post by ID', $posts);
         } catch (Exception $errorException) {
             return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, [
                 'error' => $errorException->getMessage()

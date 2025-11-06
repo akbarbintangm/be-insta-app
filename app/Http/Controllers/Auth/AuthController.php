@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Follow;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\ResponseResource;
 use Illuminate\Validation\ValidationException;
@@ -178,8 +179,14 @@ class AuthController extends Controller
 
         $userSanitized = $user->only(['id', 'name', 'username', 'email', 'created_at']);
 
+        $followerData = Follow::where('user_id', $userSanitized['id'])->get();
+
+        $followingData = Follow::where('follower_id', $userSanitized['id'])->get();
+
         return ResponseResource::json(200, 'success', 'Login berhasil', [
             'user' => $userSanitized,
+            'follower' => $followerData,
+            'following' => $followingData,
             'token' => $token,
             'remember' => (bool) $request->remember
         ]);
