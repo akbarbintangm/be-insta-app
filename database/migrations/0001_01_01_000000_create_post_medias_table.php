@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('post_id');
             $table->string('media_url');
-            $table->enum('type', ['image', 'video'])->default('image');
+            $table->string('type');
             $table->timestamps();
             // $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
         });

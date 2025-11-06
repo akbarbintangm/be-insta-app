@@ -714,6 +714,45 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "delete": {
+                "tags": [
+                    "Post Media"
+                ],
+                "summary": "Hapus post media",
+                "description": "Hanya pemilik post media yang boleh menghapus post media.",
+                "operationId": "159839e7707c64a7e683cf35aa69b17f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID post media",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post media berhasil dihapus"
+                    },
+                    "403": {
+                        "description": "Tidak boleh hapus post media orang lain"
+                    },
+                    "404": {
+                        "description": "Post media tidak ditemukan"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/follow/{id}": {
@@ -1080,10 +1119,6 @@
             "description": "API untuk mengelola postingan (CRUD)"
         },
         {
-            "name": "Post Media",
-            "description": "Upload media for posts"
-        },
-        {
             "name": "Follow",
             "description": "Follow and Unfollow user"
         },
@@ -1094,6 +1129,10 @@
         {
             "name": "User Profile",
             "description": "User profile information and updates"
+        },
+        {
+            "name": "Post Media",
+            "description": "Post Media"
         }
     ]
 }

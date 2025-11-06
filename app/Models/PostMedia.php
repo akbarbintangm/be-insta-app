@@ -20,7 +20,7 @@ class PostMedia extends Model
         return [];
     }
 
-    protected $table = 'post_media';
+    protected $table = 'post_medias';
 
     protected $fillable = [
         'post_id',

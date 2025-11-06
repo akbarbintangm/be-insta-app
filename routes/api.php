@@ -66,6 +66,7 @@ Route::middleware('auth:api')->group(function () {
     // POST MEDIA
     Route::prefix('post-media')->controller(PostMediaController::class)->group(function () {
         Route::post('/{postId}', 'upload');
+        Route::delete('/{postId}', 'destroy');
     });
 
     // LIKE

@@ -154,20 +154,21 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $response = null;
             $user = JWTAuth::parseToken()->authenticate();
             $post = Post::find($id);
 
             if (!$post) {
-                return ResponseResource::json(404, 'error', 'Post tidak ditemukan');
+                $response = ResponseResource::json(404, 'error', 'Post tidak ditemukan');
             }
 
             if ($post->user_id !== $user->id) {
-                return ResponseResource::json(403, 'error', 'Tidak boleh update post orang lain');
+                $response = ResponseResource::json(403, 'error', 'Tidak boleh update post orang lain');
+            } else {
+                $post->update($request->only('caption'));
+                $response = ResponseResource::json(200, 'success', 'Post updated', $post);
             }
-
-            $post->update($request->only('caption'));
-
-            return ResponseResource::json(200, 'success', 'Post updated', $post);
+            return $response;
         } catch (Exception $errorException) {
             return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, [
                 'error' => $errorException->getMessage()
@@ -200,20 +201,21 @@ class PostController extends Controller
     public function destroy($id)
     {
         try {
+            $response = null;
             $user = JWTAuth::parseToken()->authenticate();
             $post = Post::find($id);
 
             if (!$post) {
-                return ResponseResource::json(404, 'error', 'Post tidak ditemukan');
+                $response = ResponseResource::json(404, 'error', 'Post tidak ditemukan');
             }
 
             if ($post->user_id !== $user->id) {
-                return ResponseResource::json(403, 'error', 'Tidak boleh hapus post orang lain');
+                $response = ResponseResource::json(403, 'error', 'Tidak boleh hapus post orang lain');
+            } else {
+                $post->delete();
+                $response = ResponseResource::json(200, 'success', 'Post deleted');
             }
-
-            $post->delete();
-
-            return ResponseResource::json(200, 'success', 'Post deleted');
+            return $response;
         } catch (Exception $errorException) {
             return ResponseResource::json(500, 'error', self::ERROR_MESSAGE, [
                 'error' => $errorException->getMessage()
